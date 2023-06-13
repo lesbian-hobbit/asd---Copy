@@ -6,9 +6,10 @@ import { db } from '../firebase'
 import { useNavigation } from '@react-navigation/core'
 import { Ionicons } from "@expo/vector-icons"
 import { getAuth } from 'firebase/auth';
-
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const MainDashboard = () => {
+  const [userInfo, setUserInfo] = useState([]);
     const navigation = useNavigation()
  const onPress = () =>{
     navigation.navigate("Send")
@@ -30,28 +31,42 @@ const onPress3 = () => {
 
 
 
-const pass = auth.currentUser
-const uid = pass.uid
-const [current , setCurrent] = useState('')
-const todoRef = firebase.firestore().collection('Users');
 
-//fetch data(availableAmount) once
- const loadData = () => {
-  todoRef
-  .doc(uid)
-  .get()
-  .then(documentSnapshot => {
-    console.log( 'user exixts: ', documentSnapshot.exists);
+  const [balance, setBalance] = useState(5000); // Initial balance
+  const [email, setEmail] = useState();
+  const [uids, setUid] = useState();
+ 
 
-    if(documentSnapshot.exists){
-      console.log('User data: ', documentSnapshot.data());
-      setCurrent(documentSnapshot.data());
+  const [uid2, setUid2] = useState();
+  const [amount, setAmount] = useState();
+
+useEffect(() => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is signed in, see docs for a list of available properties
+      // https://firebase.google.com/docs/reference/js/auth.user
+      const uid = user.uid;
+      setUid(uid);
+      setEmail(user.email);
+
+      const getWallet = async() => {
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          console.log("Document data:", docSnap.data());
+          const data = docSnap.data();
+          setUserInfo(data);
+        } else {
+          // docSnap.data() will be undefined in this case
+          console.log("No such document!");
+        }
+      }
+      getWallet();
+    } else {
+      navigation.navigate("Login");
     }
-  })
- }
-useEffect (() => {
-  loadData();
-},[])
+  });
+}, []);
 
 
 
@@ -64,7 +79,7 @@ useEffect (() => {
           <Text style={styles.titleText}>
             Balance
           </Text>
-          <Text style={styles.regularText}>{current.availableAmount}</Text>
+          <Text style={styles.regularText}>{userInfo.wallet}</Text>
         </View>
         <TouchableOpacity
           onPress={() => { console.log('Balance refreshed') }} >
