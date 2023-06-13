@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   balanceText: {
+    margin:10,
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
@@ -148,12 +149,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   transferButton: {
-    backgroundColor: "#00aeef",
+    margin:10,
+    backgroundColor: "black",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
   transferButtonText: {
+
     color: "white",
     fontSize: 16,
     fontWeight: "bold",

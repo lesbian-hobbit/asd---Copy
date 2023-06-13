@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 25,
     alignItems: 'center',
-    backgroundColor: '#2ecc71',
+    backgroundColor: 'royalblue',
   },
   titleText: {
     fontSize: 12,
@@ -184,13 +184,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignContent: 'center',
     flexWrap: 'wrap',
-    backgroundColor: '#EDf9EB'
+    backgroundColor: 'white'
   },
   circle: {
     width: 40,
     height: 40,
     borderRadius: 100,
-    backgroundColor: '#2E7D32',
+    backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 5,
@@ -206,6 +206,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignContent: 'center',
     flexWrap: 'wrap',
-    backgroundColor: 'green'
+    backgroundColor: 'black'
   },
 });
