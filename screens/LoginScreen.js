@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -18,6 +19,16 @@ const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (user) {
+        navigation.replace("Main")
+      }
+    })
+
+    return unsubscribe
+  }, [])
+
   const createNewUser = async (email) => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -25,12 +36,15 @@ const Login = ({ navigation }) => {
         // https://firebase.google.com/docs/reference/js/auth.user
         const uid  = user.uid;
         console.log(uid);
+        console.log('Logged in with:', user.email);
         try {
           const newUser = async() =>{
             await setDoc(doc(db, "users", uid), {
               email: email,
               wallet: 0
+              
             });
+            console.log('Logged in with:', user.email);
           }
           newUser();
         }catch (err){
@@ -52,6 +66,7 @@ const Login = ({ navigation }) => {
         createNewUser(e)
           .then(() => {
             navigation.navigate("Main");
+            console.log('Logged in with:', user.email); 
           })
           .catch((err) => {
             console.error(err);
@@ -78,6 +93,8 @@ const Login = ({ navigation }) => {
         // ..
       });
     // You can replace the console.log statements with your actual login implementation
+
+    
   };
   return (
     <View style={styles.container}>

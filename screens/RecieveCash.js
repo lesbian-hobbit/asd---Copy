@@ -4,30 +4,40 @@ import { auth, firebase } from '../firebase';
 import {collection, setDoc, doc, getDoc, querySnapshot, documentSnapshot, getDocs, snapshotEqual, onSnapshot} from 'firebase/firestore'
 import { db } from '../firebase'
 import { getAuth } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const RecieveCash = () => {
+    const [userInfo, setUserInfo] = useState([]);
+    const [email, setEmail] = useState();
+    const [uids, setUid] = useState();
 
-    const user = auth.currentUser
-    const uid = user.uid
-
-    const todoRef = firebase.firestore().collection('Users');
-
-    const [balance , setBalance] = useState('')
-
-    const loadData = () => {
-        todoRef
-        .doc(uid)
-        .get()
-        .then(documentSnapshot => {
-            if(documentSnapshot.exists){
-                console.log('User data: ', documentSnapshot.data() );
-                setBalance(documentSnapshot.data());
+    useEffect(() => {
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            // User is signed in, see docs for a list of available properties
+            // https://firebase.google.com/docs/reference/js/auth.user
+            const uid = user.uid;
+            setUid(uid);
+            setEmail(user.email);
+      
+            const getWallet = async() => {
+              const docRef = doc(db, "users", uid);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                console.log("Document data:", docSnap.data());
+                const data = docSnap.data();
+                setUserInfo(data);
+              } else {
+                // docSnap.data() will be undefined in this case
+                console.log("No such document!");
+              }
             }
-        })
-    }
-    useEffect(()=>{
-        loadData();
-    },[])
+            getWallet();
+          } else {
+            navigation.navigate("Login");
+          }
+        });
+      }, []);
 
 
 
@@ -35,10 +45,10 @@ const RecieveCash = () => {
         <View style={styles.container}>
             <View style={styles.userInfo}>
             <Text style={styles.userId }>
-                id: {uid}
+                id: {uids}
             </Text>
             <Text style={styles.balance}>
-            Current Balance: {balance.availableAmount}
+            Current Balance: {userInfo.wallet}
             </Text>
         </View>
         </View>
@@ -63,7 +73,7 @@ const styles = StyleSheet.create({
       balance: {
         fontSize: 18,
         textAlign: 'center',
-        color: '#555',
+        color: "black",
       },
       container: {
         flex: 1,

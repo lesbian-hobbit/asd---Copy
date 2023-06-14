@@ -48,6 +48,7 @@ const Dashboard = ({ route, navigation }) => {
         const uid = user.uid;
         setUid(uid);
         setEmail(user.email);
+        
 
         const getWallet = async() => {
           const docRef = doc(db, "users", uid);
