@@ -1,7 +1,7 @@
 import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Button } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { auth, firebase } from '../firebase';
-import { collection, setDoc, doc, getDoc, Firestore } from 'firebase/firestore'
+import { collection, setDoc, doc, getDoc, Firestore, onSnapshot } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useNavigation } from '@react-navigation/core'
 import { Ionicons } from "@expo/vector-icons"
@@ -46,33 +46,49 @@ const onPress5 = () => {
   const [uid2, setUid2] = useState();
   const [amount, setAmount] = useState();
 
-useEffect(() => {
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      // User is signed in, see docs for a list of available properties
-      // https://firebase.google.com/docs/reference/js/auth.user
-      const uid = user.uid;
-      setUid(uid);
-      setEmail(user.email);
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/auth.user
+        const uid = user.uid;
+        setUid(uid);
+        setEmail(user.email);
 
-      const getWallet = async() => {
-        const docRef = doc(db, "users", uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          console.log("Document data:", docSnap.data());
-          const data = docSnap.data();
-          setUserInfo(data);
-        } else {
-          // docSnap.data() will be undefined in this case
-          console.log("No such document!");
+        const getWallet = async() => {
+          const docRef = doc(db, "users", uid);
+          const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+              console.log("Document data:", docSnap.data());
+              const data = docSnap.data();
+              setUserInfo(data);
+            } else {
+              // docSnap.data() will be undefined in this case
+              console.log("No such document!");
+            }
+          });
+
+          return unsubscribe; // Cleanup function to unsubscribe from the snapshot
         }
+        const unsubscribe = getWallet();
+
+        return () => {
+          // Clean up the snapshot subscription when the component unmounts
+          unsubscribe();
+        };
+      } else {
+        navigation.navigate("Login");
       }
-      getWallet();
-    } else {
-      navigation.navigate("Login");
-    }
-  });
-}, []);
+    });
+  }, []);
+
+  const handleSignOut = () =>{
+    signOut(auth).then(() => {
+      navigation.navigate('Login');
+    }).catch((error) => {
+      // An error happened.
+    });
+  }
 
 
 

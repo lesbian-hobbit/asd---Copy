@@ -11,9 +11,10 @@ import {
   getDoc,
   setDoc,
   addDoc,
-  Timestamp
+  Timestamp,
+  deducttran
 } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { auth, db, firebase } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const Dashboard = ({ route, navigation }) => {
@@ -37,34 +38,62 @@ const Dashboard = ({ route, navigation }) => {
         }
         const newWallet = sfDoc.data().wallet + Number(amount);
         transaction.update(sfDocRef, { wallet: newWallet });
-        
-
       });
       console.log("Transaction successfully committed!: " + Number(amount) +" "+ uid2 );
-
-
     } catch (e) {
       console.log("Transaction failed: ", e);
     }
 
-    if(transferFunds){
-        const newTransactions = async() =>{
-          await addDoc(collection(db, "users", "LlsVwIQz9hMMDtHgQLlT", "Logs"), {
-            transactions: amount,
-            Timestamp: new Date(),
-            ReceiverUid: uid2
-           
-            
+    const deduct = async () => {
+      const user = auth.currentUser.uid;
+      if (user) {
+        const uid = user;
+        try {
+          await runTransaction(db, async (transaction) => {
+            const userRef = firebase.firestore().collection("users").doc(uid);
+            const sf = await transaction.get(userRef);
+            if (!sf.exists) {
+              throw "Document does not exist!";
+            }
+            const deductedWallet = sf.data().wallet - Number(amount);
+            transaction.update(userRef, {
+              wallet: deductedWallet
+            });
+            console.log("Wallet updated successfully");
           });
+        } catch (error) {
+          console.error("Error updating wallet:", error);
         }
-        newTransactions();
       }
-      
+    };
+    deduct();
 
+    const user = auth.currentUser.uid;
+    if(user){
+
+      const uid = user;
+    const newTransactions = async () => {
+      await addDoc(collection(db, "users", uid, "history","DUgVrFDJhas4wAuX07re", "Sent"), {
+        transactions: amount,
+        Timestamp: new Date(),
+        ReceiverUid: uid2
+      });
+    };
+    newTransactions();
     
-    
+    const recievedHis = async () => {
+      await addDoc(collection(db, "users", uid2, "history","DUgVrFDJhas4wAuX07re", "Recieved"), {
+        transactions: amount,
+        Timestamp: new Date(),
+        Sender: uid
+      });
+    };
+    recievedHis();
   };
 
+  
+  
+}
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -76,27 +105,30 @@ const Dashboard = ({ route, navigation }) => {
 
         const getWallet = async() => {
           const docRef = doc(db, "users", uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            console.log("Document data:", docSnap.data());
-            const data = docSnap.data();
-            setUserInfo(data);
-          } else {
-            // docSnap.data() will be undefined in this case
-            console.log("No such document!");
-          }
+          const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+              console.log("Document data:", docSnap.data());
+              const data = docSnap.data();
+              setUserInfo(data);
+            } else {
+              // docSnap.data() will be undefined in this case
+              console.log("No such document!");
+            }
+          });
+
+          return unsubscribe; // Cleanup function to unsubscribe from the snapshot
         }
-        getWallet();
+        const unsubscribe = getWallet();
+
+        return () => {
+          // Clean up the snapshot subscription when the component unmounts
+          unsubscribe();
+        };
       } else {
         navigation.navigate("Login");
       }
     });
   }, []);
-  const handleTransferFunds = () => {
-    // Implement your logic for transferring funds here
-    // This is just a placeholder example
-    setBalance(balance - 100);
-  };
 
   const handleSignOut = () =>{
     signOut(auth).then(() => {
@@ -105,6 +137,7 @@ const Dashboard = ({ route, navigation }) => {
       // An error happened.
     });
   }
+
   return (
     <View style={styles.container}>
       <Text style={styles.welcomeText}>Welcome, {email}</Text>
@@ -130,7 +163,6 @@ const Dashboard = ({ route, navigation }) => {
         onPress={transferFunds}
       >
         <Text style={styles.transferButtonText}>Send Funds</Text>
-
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -182,7 +214,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   transferButtonText: {
-
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
