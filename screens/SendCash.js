@@ -8,7 +8,10 @@ import {
   writeBatch,
   runTransaction ,
   doc,
-  getDoc
+  getDoc,
+  setDoc,
+  addDoc,
+  Timestamp
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -18,7 +21,8 @@ const Dashboard = ({ route, navigation }) => {
   const [email, setEmail] = useState();
   const [uids, setUid] = useState();
   const [userInfo, setUserInfo] = useState([]);
-
+  const [transactions, setTransactions] = useState();
+  const [fullname, setName] = useState();
   const [uid2, setUid2] = useState();
   const [amount, setAmount] = useState();
   // Get a new write batch
@@ -33,11 +37,32 @@ const Dashboard = ({ route, navigation }) => {
         }
         const newWallet = sfDoc.data().wallet + Number(amount);
         transaction.update(sfDocRef, { wallet: newWallet });
+        
+
       });
-      console.log("Transaction successfully committed!");
+      console.log("Transaction successfully committed!: " + Number(amount) +" "+ uid2 );
+
+
     } catch (e) {
       console.log("Transaction failed: ", e);
     }
+
+    if(transferFunds){
+        const newTransactions = async() =>{
+          await addDoc(collection(db, "users", "LlsVwIQz9hMMDtHgQLlT", "Logs"), {
+            transactions: amount,
+            Timestamp: new Date(),
+            ReceiverUid: uid2
+           
+            
+          });
+        }
+        newTransactions();
+      }
+      
+
+    
+    
   };
 
   useEffect(() => {
@@ -105,6 +130,7 @@ const Dashboard = ({ route, navigation }) => {
         onPress={transferFunds}
       >
         <Text style={styles.transferButtonText}>Send Funds</Text>
+
       </TouchableOpacity>
 
       <TouchableOpacity

@@ -28,6 +28,12 @@ const onPress2 = () => {
 const onPress3 = () => {
   navigation.navigate("Recieve")
 }
+const onPress4 = () => {
+  navigation.navigate("Currency")
+}
+const onPress5 = () => {
+  navigation.navigate("Logs")
+}
 
 
 
@@ -116,7 +122,7 @@ useEffect(() => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.HeadlineText}>Shortcuts</Text>
+      
 
       <View style={[styles.buttonsContainer]}>
         <View style={{ marginRight: 10 }}>
@@ -125,6 +131,24 @@ useEffect(() => {
               <Ionicons name="person-outline" size={22} color="white" />
             </View>
             <Text style={[styles.titleText, { color: 'black', marginTop: 5 }]}>Profile</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ marginRight: 10 }}>
+          <TouchableOpacity style={{ alignItems: 'center' }} onPress={onPress4}>
+            <View style={styles.smallButtonContainer}>
+              <Ionicons name="person-outline" size={22} color="white" />
+            </View>
+            <Text style={[styles.titleText, { color: 'black', marginTop: 5 }]}>Crypto Currency</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ marginRight: 10 }}>
+          <TouchableOpacity style={{ alignItems: 'center' }} onPress={onPress5}>
+            <View style={styles.smallButtonContainer}>
+              <Ionicons name="person-outline" size={22} color="white" />
+            </View>
+            <Text style={[styles.titleText, { color: 'black', marginTop: 5 }]}>Logs</Text>
           </TouchableOpacity>
         </View>
 
